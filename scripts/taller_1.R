@@ -414,6 +414,7 @@ b_int2 <- if (length(nm_int2) == 1) coefs[nm_int2] else 0
 peak_female <- -b_age / (2 * b_age2)
 peak_male   <- -(b_age + b_int1) / (2 * (b_age2 + b_int2))
 
+
 # (3) Gráfico con bandas bootstrap y líneas verticales
 ggplot(df_pred, aes(x = age, y = fit_boot, color = factor(bin_male), fill = factor(bin_male))) +
   geom_line(linewidth = 1) +
