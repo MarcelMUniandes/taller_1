@@ -154,8 +154,10 @@ df <- impute_y_total_m_ha_level1(df)
 
 #Replace with 0 if ingtot==0, to account for people who had no income at all
 
-df <- df %>%
-  mutate(y_total_m_ha = ifelse(ingtot == 0, 0, y_total_m_ha))
+
+geih <- geih %>%
+  filter(y_total_m_ha != 0)
+
 # Check for people who spend hours working but had no income
 sum(is.na(df$y_total_m_ha))
 
@@ -207,7 +209,8 @@ df <- df %>% rename(
   type_occup = relab,
   activity_time = p6240,
   second_job = p7040,
-  activity_second_job = p7050
+  activity_second_job = p7050,
+  experience = p6426
 )
 
 
@@ -274,13 +277,13 @@ stargazer(model3, type = 'latex', out=out_tex)
 
 # Define all variables used in both models
 vars_needed <- c("ln_ingtot_h", "bin_male", "age", "age_sq", "estrato1", 
-                 "oficio", "hoursWorkUsual", "maxEducLevel")
+                 "oficio", "cuentaPropia", "maxEducLevel", "experience")
 
 # Filter out rows with any missing values in those variables
 df_clean <- df %>% filter(if_all(all_of(vars_needed), ~ !is.na(.)))
 
 # Now run the FWL steps
-controles <- ~ age + age_sq + estrato1 + oficio + hoursWorkUsual + maxEducLevel
+controles <- ~ age + age_sq + estrato1 + oficio + hoursWorkUsual + maxEducLevel + cuentaPropia + experience
 
 y_tilde <- resid(lm(update(controles, ln_ingtot_h ~ .), data = df_clean))
 d_tilde <- resid(lm(update(controles, bin_male ~ .), data = df_clean))
@@ -291,7 +294,7 @@ stargazer(model4_fwl, type = 'text')
 fwl_boot <- function(data, indices) {
   df_sample <- data[indices, ]
   
-  controles <- ~ age + age_sq + estrato1 + oficio + hoursWorkUsual + maxEducLevel
+  controles <- ~ age + age_sq + estrato1 + oficio + hoursWorkUsual + maxEducLevel + cuentaPropia + experience
   
   y_tilde <- resid(lm(update(controles, ln_ingtot_h ~ .), data = df_sample))
   d_tilde <- resid(lm(update(controles, bin_male ~ .), data = df_sample))
@@ -331,18 +334,7 @@ library(boot)
 #    - Ensure factors are factors
 #    - Keep bin_male as 0/1 numeric
 # =========================
-vars_needed <- c("ln_ingtot_h","bin_male","age","age_sq",
-                 "estrato1","oficio","hoursWorkUsual","maxEducLevel")
 
-df_clean <- df %>%
-  filter(if_all(all_of(vars_needed), ~ !is.na(.))) %>%
-  mutate(
-    estrato1     = as.factor(estrato1),
-    oficio       = as.factor(oficio),
-    maxEducLevel = as.factor(maxEducLevel)
-    # bin_male should be numeric 0/1; if not, map it:
-    # bin_male = as.integer(bin_male == "male")
-  )
 
 # =========================
 # 2) Modelo
