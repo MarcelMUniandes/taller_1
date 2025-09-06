@@ -283,7 +283,7 @@ vars_needed <- c("ln_ingtot_h", "bin_male", "age", "age_sq", "estrato1",
 df_clean <- df %>% filter(if_all(all_of(vars_needed), ~ !is.na(.)))
 
 # Now run the FWL steps
-controles <- ~ age + age_sq + estrato1 + oficio + hoursWorkUsual + maxEducLevel + cuentaPropia + experience
+controles <- ~ age + age_sq + estrato1 + oficio + maxEducLevel + cuentaPropia + experience
 
 y_tilde <- resid(lm(update(controles, ln_ingtot_h ~ .), data = df_clean))
 d_tilde <- resid(lm(update(controles, bin_male ~ .), data = df_clean))
